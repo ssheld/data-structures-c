@@ -154,7 +154,6 @@ void insert(struct list* linked_list, char name[])
 // Delete the entire list
 void delete_list(struct list* linked_list)
 {
-	
 	struct node* temp;
 	
 	// Cycle through and free all nodes until head is null
@@ -212,7 +211,6 @@ void print_list_reverse(struct list* linked_list)
 		printf("%s ", current_node->name);
 		current_node = current_node->prev;
 	}
-	
 	printf("\n\n");
 }
 
