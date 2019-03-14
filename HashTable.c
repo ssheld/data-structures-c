@@ -54,15 +54,19 @@ struct hashtable* new_hashtable();
 void insert(struct hashtable* h, struct person* p);
 int hash_function(char first_name[], char last_name[]); 
 void delete_hashtable(struct hashtable* h); 
+void lookup(struct hashtable* h, char first_name[], char last_name[]);
+char * to_lowercase(char s[]);
 
 //void expand(struct hashtable* h);
-//int lookup(struct hashtable* h, struct person* p);
 //int remove(struct hashtable* h, struct person* p);
 
 int main(void)
 {
 	int i, choice, num_entries;
 	FILE *fp;
+	char* token;
+	char first_name[MAX_LEN];
+	char last_name[MAX_LEN];
 	
 	// Create a new hashtable
 	struct hashtable* my_hashtable = new_hashtable();
@@ -101,6 +105,18 @@ int main(void)
 		printf("0. Exit program\n");
 		scanf("%d", &choice);
 		
+		if (choice == 1)
+		{
+			printf("Please enter the first and last name, separated by a space\n");
+			scanf("%s %s", first_name, last_name);
+			
+			// Convert to all lowercase
+			strcpy(first_name, to_lowercase(first_name));
+			strcpy(last_name, to_lowercase(last_name));
+			
+			lookup(my_hashtable, first_name, last_name);
+		}
+		
 	} while (choice != 0);
 	
 	delete_hashtable(my_hashtable);
@@ -117,7 +133,6 @@ struct hashtable* new_hashtable()
 	h->num_elements = 0;
 	// Use calloc to initialize to zeros
 	h->store = calloc(INITIAL_LEN, sizeof(struct person*));
-//	h->store = malloc(INITIAL_LEN * sizeof(struct person*));
 	return h;
 }
 
@@ -155,6 +170,7 @@ void insert(struct hashtable* h, struct person* p)
 	current_node->next = p;	
 }
 
+// Hash function for generating index, utilizes ASCII sums of first + last names
 int hash_function(char first_name[], char last_name[]) 
 {
 	char concat_name[MAX_LEN*2];
@@ -164,9 +180,8 @@ int hash_function(char first_name[], char last_name[])
 	// For now we will concat name to use for hash function
 	strcpy(concat_name, first_name);
 	strcat(concat_name, last_name);
-	// Now let's convert the strings to lowercase it to all lowercase
-	for (i = 0; concat_name[i]; i++)
-		concat_name[i] = tolower((unsigned char)concat_name[i]); 
+	// Now let's convert the strings to lowercase
+	strcpy(concat_name, to_lowercase(concat_name));
 
 	// Now because this is a string we first need to process the text
 	// to convert it to numbers. So let's parse each individual char,
@@ -185,6 +200,40 @@ int hash_function(char first_name[], char last_name[])
 	return hash_value;
 }
 
+// Prints all people in the database matching the first and last name
+void lookup(struct hashtable* h, char first_name[], char last_name[])
+{
+	int hash_index;
+	int seen;
+	struct person* current_node;
+	char temp_first[MAX_LEN];
+	char temp_last[MAX_LEN];
+	
+	// Grab hash index	
+	hash_index = hash_function(first_name, last_name);
+
+	current_node = h->store[hash_index];
+	seen = 0;
+	
+	while (current_node != NULL) 
+	{	
+		if (strcmp(strcpy(temp_first, to_lowercase(current_node->first_name)), first_name) == 0 &&
+			strcmp(strcpy(temp_last, to_lowercase(current_node->last_name)), last_name) == 0)
+		{
+			seen = 1;
+			printf("\nFound name: %s %s  ", current_node->first_name, current_node->last_name);
+			printf("Personal ID: %d\n", current_node->id);
+		}
+		current_node = current_node->next;
+	}	
+	
+	if (seen == 0)
+		printf("\nI'm sorry, I could not find %s %s in the database\n", first_name, last_name);
+		
+	printf("\n");
+}
+
+// Free all memory allocated to hash table and it's elements
 void delete_hashtable(struct hashtable* h) 
 {
 	int i;
@@ -208,6 +257,16 @@ void delete_hashtable(struct hashtable* h)
 	// Free the hash table
 	free(h);
  } 
+ 
+ // Convert a string to all lowercase
+ char * to_lowercase(char s[])
+ {
+ 	int i;
+ 	// Convert to all lowercase
+	for (i = 0; s[i]; i++)
+		s[i] = tolower((unsigned char)s[i]);
+	
+	return s; 
+ }
 //void expand(struct hashtable* h); 
-//int lookup(struct hashtable* h, struct person* p);
 //int remove(struct hashtable* h, struct person* p);
