@@ -163,9 +163,9 @@ void post_order(struct node* root)
 	if (root == NULL)
 		return;
 		
+	post_order(root->left);
 	post_order(root->right);
 	printf("%d ", root->data);
-	post_order(root->left);
 }
 
 
